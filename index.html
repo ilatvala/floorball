@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #timer-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #timer {
+      font-size: 20vw; /* 20% of the viewport width */
+      margin: 20px;
+      cursor: pointer;
+      color: black;
+    }
+    #controls {
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .adjustment-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+  <title>Timer App</title>
+</head>
+<body>
+
+<div id="timer-container">
+  <div class="adjustment-buttons">
+    <button onclick="incrementMinutes()">+</button>
+    <button onclick="decrementMinutes()">-</button>
+  </div>
+  
+  <div id="timer" onclick="modifyTime()">00:00</div>
+
+  <div class="adjustment-buttons">
+    <button onclick="incrementSeconds()">+</button>
+    <button onclick="decrementSeconds()">-</button>
+  </div>
+</div>
+
+<div id="controls">
+  <label for="minutes">Select Timer:</label>
+  <select id="minutes">
+    <option value="10">10 minutes</option>
+    <option value="15" selected>15 minutes</option>
+  </select>
+
+  <button id="toggleBtn" onclick="toggleTimer()">Start</button>
+  <button onclick="resetTimer()">Reset</button>
+</div>
+
+<script>
+  let timer;
+  let timerRunning = false;
+  let totalSeconds = 0;
+  let predefinedTime = 0;
+
+  function updateTimerDisplay() {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const timerDisplay = document.getElementById('timer');
+
+    if (timerRunning && totalSeconds >= predefinedTime) {
+      timerDisplay.style.color = 'red';
+    } else {
+      timerDisplay.style.color = 'black';
+    }
+
+    timerDisplay.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  function toggleTimer() {
+    if (timerRunning) {
+      clearInterval(timer);
+      document.getElementById('toggleBtn').innerText = 'Start';
+    } else {
+      predefinedTime = parseInt(document.getElementById('minutes').value, 10) * 60;
+      timer = setInterval(() => {
+        if (totalSeconds >= predefinedTime) {
+          clearInterval(timer);
+          totalSeconds = predefinedTime;
+          updateTimerDisplay();
+          document.getElementById('toggleBtn').innerText = 'Start';
+          timerRunning = false;
+        } else {
+          totalSeconds++;
+          updateTimerDisplay();
+        }
+      }, 1000);
+      document.getElementById('toggleBtn').innerText = 'Stop';
+    }
+    
+    timerRunning = !timerRunning;
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    totalSeconds = 0;
+    predefinedTime = 0;
+    updateTimerDisplay();
+    document.getElementById('toggleBtn').innerText = 'Start';
+    timerRunning = false;
+  }
+
+  function incrementMinutes() {
+    totalSeconds += 60;
+    updateTimerDisplay();
+  }
+
+  function decrementMinutes() {
+    if (totalSeconds >= 60) {
+      totalSeconds -= 60;
+      updateTimerDisplay();
+    }
+  }
+
+  function incrementSeconds() {
+    totalSeconds++;
+    updateTimerDisplay();
+  }
+
+  function decrementSeconds() {
+    if (totalSeconds > 0) {
+      totalSeconds--;
+      updateTimerDisplay();
+    }
+  }
+
+  function modifyTime() {
+    const timerDisplay = document.getElementById('timer');
+    const [minutes, seconds] = timerDisplay.innerText.split(':');
+    
+    document.getElementById('minutes').value = parseInt(minutes, 10);
+    totalSeconds = parseInt(minutes, 10) * 60 + parseInt(seconds, 10);
+  }
+</script>
+
+</body>
+</html>
