@@ -23,40 +23,51 @@
       margin: 20px;
       display: flex;
       flex-direction: column;
+      align-items: center;
     }
     .adjustment-buttons {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+    #resetBtn {
+      margin-bottom: 10px;
+    }
+    #timeSelection {
+      margin-bottom: 10px;
+    }
+    #toggleBtn {
+      margin-top: 10px;
+    }
   </style>
   <title>Timer App</title>
 </head>
 <body>
 
-<div id="timer-container">
-  <div class="adjustment-buttons">
-    <button onclick="incrementMinutes()">+</button>
-    <button onclick="decrementMinutes()">-</button>
-  </div>
-  
-  <div id="timer" onclick="modifyTime()">00:00</div>
-
-  <div class="adjustment-buttons">
-    <button onclick="incrementSeconds()">+</button>
-    <button onclick="decrementSeconds()">-</button>
-  </div>
-</div>
-
 <div id="controls">
-  <label for="minutes">Select Timer:</label>
+  <button id="resetBtn" onclick="resetTimer()">Reset</button>
+  
+  <div id="timer-container">
+    <div class="adjustment-buttons">
+      <button onclick="incrementMinutes()">+</button>
+      <button onclick="decrementMinutes()">-</button>
+    </div>
+    
+    <div id="timer" onclick="modifyTime()">00:00</div>
+
+    <div class="adjustment-buttons">
+      <button onclick="incrementSeconds()">+</button>
+      <button onclick="decrementSeconds()">-</button>
+    </div>
+  </div>
+
+  <label for="minutes" id="timeSelection">Select Timer:</label>
   <select id="minutes">
     <option value="10">10 minutes</option>
     <option value="15" selected>15 minutes</option>
   </select>
 
   <button id="toggleBtn" onclick="toggleTimer()">Start</button>
-  <button onclick="resetTimer()">Reset</button>
 </div>
 
 <script>
