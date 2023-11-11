@@ -63,8 +63,10 @@
 
   <label for="minutes" id="timeSelection">Select Timer:</label>
   <select id="minutes">
+    <option value="5">5 minutes</option>
     <option value="10">10 minutes</option>
     <option value="15" selected>15 minutes</option>
+    <option value="20">20 minutes</option>
   </select>
 
   <button id="toggleBtn" onclick="toggleTimer()">Start</button>
@@ -75,6 +77,13 @@
   let timerRunning = false;
   let totalSeconds = 0;
   let predefinedTime = 0;
+
+  // Retrieve the timer state from localStorage
+  const storedTotalSeconds = localStorage.getItem('totalSeconds');
+  if (storedTotalSeconds) {
+    totalSeconds = parseInt(storedTotalSeconds, 10);
+    predefinedTime = parseInt(document.getElementById('minutes').value, 10) * 60;
+  }
 
   function updateTimerDisplay() {
     const minutes = Math.floor(totalSeconds / 60);
@@ -154,6 +163,14 @@
     document.getElementById('minutes').value = parseInt(minutes, 10);
     totalSeconds = parseInt(minutes, 10) * 60 + parseInt(seconds, 10);
   }
+
+  // Save the timer state to localStorage every second
+  setInterval(() => {
+    localStorage.setItem('totalSeconds', totalSeconds.toString());
+  }, 1000);
+
+  // Update the timer display
+  updateTimerDisplay();
 </script>
 
 </body>
