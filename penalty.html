@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiple Countdown Timers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .timer-container {
+      text-align: center;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+
+    .timer {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .button {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .expired {
+      color: red;
+    }
+
+    #column3 {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="column" id="column1">
+    <button class="button" onclick="addTimer(1)">Add Timer</button>
+  </div>
+
+  <div class="column" id="column3">
+    <button class="button" onclick="toggleTimers()">Start/Stop All</button>
+  </div>
+
+  <div class="column" id="column2">
+    <button class="button" onclick="addTimer(2)">Add Timer</button>
+  </div>
+
+  <script>
+    let timerIdCounter = 0; // To keep track of timer IDs
+
+    const countdowns = {};
+    let isTimersRunning = false;
+
+    function updateTimer(timerId) {
+      const timerElement = document.getElementById(`timer${timerId}`);
+      const timer = countdowns[timerId];
+
+      const minutes = Math.floor(timer.time / 60);
+      const seconds = timer.time % 60;
+
+      timerElement.querySelector('.timer').innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+      if (timer.time === 0) {
+        timerElement.querySelector('.timer').classList.add('expired');
+      }
+    }
+
+    function startTimer(timerId) {
+      const timer = countdowns[timerId];
+      timer.intervalId = setInterval(() => {
+        if (timer.time > 0) {
+          timer.time--;
+          updateTimer(timerId);
+        } else {
+          clearInterval(timer.intervalId);
+          timer.intervalId = null;
+        }
+      }, 1000);
+    }
+
+    function addTimer(columnId) {
+      if (isTimersRunning) {
+        alert('Stop all timers before adding or removing a timer.');
+        return;
+      }
+
+      timerIdCounter++;
+      const newTimerId = timerIdCounter;
+
+      const timerContainer = document.createElement('div');
+      timerContainer.classList.add('timer-container');
+      timerContainer.id = `timer${newTimerId}`;
+
+      const removeButton = document.createElement('button');
+      removeButton.classList.add('button');
+      removeButton.innerText = 'Remove Timer';
+      removeButton.onclick = () => removeTimer(newTimerId);
+      timerContainer.appendChild(removeButton);
+
+      const timerElement = document.createElement('div');
+      timerElement.classList.add('timer');
+      timerElement.innerText = '02:00';
+      timerContainer.appendChild(timerElement);
+
+      const column = document.getElementById(`column${columnId}`);
+      const addButton = column.querySelector('.button');
+      column.insertBefore(timerContainer, addButton.nextSibling);
+
+      countdowns[newTimerId] = { time: 120, intervalId: null };
+      startTimerIfRunning(newTimerId);
+    }
+
+    function removeTimer(timerId) {
+      if (isTimersRunning) {
+        alert('Stop all timers before adding or removing a timer.');
+        return;
+      }
+
+      const timerElement = document.getElementById(`timer${timerId}`);
+      timerElement.remove();
+      clearInterval(countdowns[timerId].intervalId);
+      delete countdowns[timerId];
+    }
+
+    function toggleTimers() {
+      const hasTimers = Object.keys(countdowns).length > 0;
+
+      if (!hasTimers) {
+        alert('No timers added yet.');
+        return;
+      }
+
+      const isAnyTimerRunning = Object.values(countdowns).some(timer => timer.intervalId !== null);
+
+      if (isAnyTimerRunning) {
+        Object.keys(countdowns).forEach(timerId => {
+          clearInterval(countdowns[timerId].intervalId);
+          countdowns[timerId].intervalId = null;
+        });
+        isTimersRunning = false;
+      } else {
+        Object.keys(countdowns).forEach(timerId => {
+          startTimer(timerId);
+        });
+        isTimersRunning = true;
+      }
+    }
+
+    function startTimerIfRunning(timerId) {
+      if (isTimersRunning) {
+        startTimer(timerId);
+      }
+    }
+  </script>
+</body>
+</html>
