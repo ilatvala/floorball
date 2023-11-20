@@ -59,8 +59,8 @@
 <body>
   <div class="column" id="column1">
     <div class="button-container">
-      <button class="button" onclick="addTimer(1, 2)">Add 2-Min Timer</button>
-      <button class="button" onclick="addTimer(1, 5)">Add 5-Min Timer</button>
+      <button class="button" onclick="addTimer(1, 2)">Add 2-Min</button>
+      <button class="button" onclick="addTimer(1, 5)">Add 5-Min</button>
     </div>
   </div>
 
@@ -70,8 +70,8 @@
 
   <div class="column" id="column2">
     <div class="button-container">
-      <button class="button" onclick="addTimer(2, 2)">Add 2-Min Timer</button>
-      <button class="button" onclick="addTimer(2, 5)">Add 5-Min Timer</button>
+      <button class="button" onclick="addTimer(2, 2)">Add 2-Min</button>
+      <button class="button" onclick="addTimer(2, 5)">Add 5-Min</button>
     </div>
   </div>
 
@@ -104,7 +104,6 @@
         } else {
           clearInterval(timer.intervalId);
           timer.intervalId = null;
-          enableRemoveButton(timerId);
           checkAllTimersEnded();
         }
       }, 1000);
@@ -151,6 +150,11 @@
       removeButton.disabled = false;
     }
 
+    function disableRemoveButton(timerId) {
+      const removeButton = document.getElementById(`timer${timerId}`).querySelector('.button');
+      removeButton.disabled = true;
+    }
+
     function removeTimer(timerId) {
       if (isTimersRunning) {
         alert('Stop all timers before adding or removing a timer.');
@@ -193,10 +197,12 @@
         Object.keys(countdowns).forEach(timerId => {
           clearInterval(countdowns[timerId].intervalId);
           countdowns[timerId].intervalId = null;
+          enableRemoveButton(timerId);
         });
         isTimersRunning = false;
       } else {
         Object.keys(countdowns).forEach(timerId => {
+          disableRemoveButton(timerId);  
           startTimer(timerId);
         });
         isTimersRunning = true;
