@@ -32,6 +32,12 @@
       margin-bottom: 10px;
     }
 
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
     .button {
       padding: 10px;
       font-size: 16px;
@@ -52,7 +58,10 @@
 </head>
 <body>
   <div class="column" id="column1">
-    <button class="button" onclick="addTimer(1)">Add Timer</button>
+    <div class="button-container">
+      <button class="button" onclick="addTimer(1, 2)">Add 2-Min Timer</button>
+      <button class="button" onclick="addTimer(1, 5)">Add 5-Min Timer</button>
+    </div>
   </div>
 
   <div class="column" id="column3">
@@ -60,7 +69,10 @@
   </div>
 
   <div class="column" id="column2">
-    <button class="button" onclick="addTimer(2)">Add Timer</button>
+    <div class="button-container">
+      <button class="button" onclick="addTimer(2, 2)">Add 2-Min Timer</button>
+      <button class="button" onclick="addTimer(2, 5)">Add 5-Min Timer</button>
+    </div>
   </div>
 
   <script>
@@ -92,11 +104,13 @@
         } else {
           clearInterval(timer.intervalId);
           timer.intervalId = null;
+          enableRemoveButton(timerId);
+          checkAllTimersEnded();
         }
       }, 1000);
     }
 
-    function addTimer(columnId) {
+    function addTimer(columnId, minutes) {
       if (isTimersRunning) {
         alert('Stop all timers before adding or removing a timer.');
         return;
@@ -109,23 +123,32 @@
       timerContainer.classList.add('timer-container');
       timerContainer.id = `timer${newTimerId}`;
 
+      const buttonContainer = document.createElement('div');
+      buttonContainer.classList.add('button-container');
+
       const removeButton = document.createElement('button');
       removeButton.classList.add('button');
       removeButton.innerText = 'Remove Timer';
       removeButton.onclick = () => removeTimer(newTimerId);
-      timerContainer.appendChild(removeButton);
+      buttonContainer.appendChild(removeButton);
 
       const timerElement = document.createElement('div');
       timerElement.classList.add('timer');
-      timerElement.innerText = '02:00';
+      timerElement.innerText = `${String(minutes).padStart(2, '0')}:00`;
+      timerContainer.appendChild(buttonContainer);
       timerContainer.appendChild(timerElement);
 
       const column = document.getElementById(`column${columnId}`);
-      const addButton = column.querySelector('.button');
-      column.insertBefore(timerContainer, addButton.nextSibling);
+      column.appendChild(timerContainer);
 
-      countdowns[newTimerId] = { time: 120, intervalId: null };
+      countdowns[newTimerId] = { time: minutes * 60, intervalId: null };
       startTimerIfRunning(newTimerId);
+      enableRemoveButton(newTimerId);
+    }
+
+    function enableRemoveButton(timerId) {
+      const removeButton = document.getElementById(`timer${timerId}`).querySelector('.button');
+      removeButton.disabled = false;
     }
 
     function removeTimer(timerId) {
@@ -138,6 +161,22 @@
       timerElement.remove();
       clearInterval(countdowns[timerId].intervalId);
       delete countdowns[timerId];
+      checkAllTimersEnded();
+    }
+
+    function checkAllTimersEnded() {
+      const allTimersEnded = Object.values(countdowns).every(timer => timer.time === 0);
+      if (allTimersEnded) {
+        stopAllTimers();
+      }
+    }
+
+    function stopAllTimers() {
+      Object.keys(countdowns).forEach(timerId => {
+        clearInterval(countdowns[timerId].intervalId);
+        countdowns[timerId].intervalId = null;
+      });
+      isTimersRunning = false;
     }
 
     function toggleTimers() {
