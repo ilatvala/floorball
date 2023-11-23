@@ -179,6 +179,7 @@
       Object.keys(countdowns).forEach(timerId => {
         clearInterval(countdowns[timerId].intervalId);
         countdowns[timerId].intervalId = null;
+        enableRemoveButton(timerId);
       });
       isTimersRunning = false;
     }
