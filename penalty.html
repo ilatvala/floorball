@@ -59,8 +59,8 @@
 <body>
   <div class="column" id="column1">
     <div class="button-container">
-      <button id="addButton12" class="button" onclick="addTimer(1, 2)">Add 2</button>
-      <button id="addButton15" class="button" onclick="addTimer(1, 5)">Add 5</button>
+      <button id="addButton12" class="button add" onclick="addTimer(1, 2)">Add 2</button>
+      <button id="addButton15" class="button add" onclick="addTimer(1, 5)">Add 5</button>
     </div>
   </div>
 
@@ -70,26 +70,81 @@
 
   <div class="column" id="column2">
     <div class="button-container">
-      <button id="addButton22" class="button" onclick="addTimer(2, 2)">Add 2</button>
-      <button id="addButton25" class="button" onclick="addTimer(2, 5)">Add 5</button>
+      <button id="addButton22" class="button add" onclick="addTimer(2, 2)">Add 2</button>
+      <button id="addButton25" class="button add" onclick="addTimer(2, 5)">Add 5</button>
     </div>
   </div>
 
   <script>
     let timerIdCounter = 0; // To keep track of timer IDs
-
     const countdowns = {};
     let isTimersRunning = false;
-    // Enable or disable add buttons
-    const addButton12 = document.getElementById('addButton12');
-    const addButton22 = document.getElementById('addButton22');
-    const addButton15 = document.getElementById('addButton15');
-    const addButton25 = document.getElementById('addButton25');
-    addButton12.disabled = false;    
-    addButton22.disabled = false;    
-    addButton15.disabled = false;    
-    addButton25.disabled = false;    
 
+    // Function to initialize timers based on local storage data
+    function initializeTimersFromLocalStorage() {
+      let tcdata = localStorage.getItem('tc');
+      if (tcdata) {
+        timerIdCounter = parseInt(tcdata, 10);
+      }
+
+      let retrievedObject = localStorage.getItem('allCounters');
+      if (retrievedObject) {
+        const storedCountdowns = JSON.parse(retrievedObject);
+        Object.keys(storedCountdowns).forEach(timerId => {
+          const storedTimer = storedCountdowns[timerId];
+          countdowns[timerId] = { time: storedTimer.time, intervalId: null, columnId: storedTimer.columnId };
+          addTimerUI(timerId, storedTimer.time, storedTimer.columnId);
+          startTimerIfRunning(timerId);
+          enableRemoveButton(timerId);
+        });
+      }
+    }
+
+    // Function to add timer UI elements
+    function addTimerUI(timerId, totalSeconds, columnId) {
+      const timerContainer = document.createElement('div');
+      timerContainer.classList.add('timer-container');
+      timerContainer.id = `timer${timerId}`;
+
+      const buttonContainer = document.createElement('div');
+      buttonContainer.classList.add('button-container');
+
+      const removeButton = document.createElement('button');
+      removeButton.classList.add('button');
+      removeButton.innerText = 'Remove Timer';
+      removeButton.onclick = () => removeTimer(timerId);
+      buttonContainer.appendChild(removeButton);
+
+      const timerElement = document.createElement('div');
+      timerElement.classList.add('timer');
+      timerElement.innerText = formatTime(totalSeconds);
+      timerContainer.appendChild(buttonContainer);
+      timerContainer.appendChild(timerElement);
+
+      const column = document.getElementById(`column${columnId}`);
+      column.appendChild(timerContainer);
+    }
+
+    // Function to format time as minutes and seconds
+    function formatTime(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // Function to enable remove button
+    function enableRemoveButton(timerId) {
+      const removeButton = document.getElementById(`timer${timerId}`).querySelector('.button');
+      removeButton.disabled = false;
+    }
+
+    // Function to disable remove button
+    function disableRemoveButton(timerId) {
+      const removeButton = document.getElementById(`timer${timerId}`).querySelector('.button');
+      removeButton.disabled = true;
+    }
+
+    // Function to update timer
     function updateTimer(timerId) {
       const timerElement = document.getElementById(`timer${timerId}`);
       const timer = countdowns[timerId];
@@ -104,6 +159,7 @@
       }
     }
 
+    // Function to start timer
     function startTimer(timerId) {
       const timer = countdowns[timerId];
       timer.intervalId = setInterval(() => {
@@ -118,52 +174,69 @@
       }, 1000);
     }
 
+    // Function to add timer
     function addTimer(columnId, minutes) {
-    if (isTimersRunning) {
+      if (isTimersRunning) {
         alert('Stop all timers before adding or removing a timer.');
         return;
+      }
+
+      timerIdCounter++;
+      const newTimerId = timerIdCounter;
+
+      const column = document.getElementById(`column${columnId}`);
+      const timerContainer = document.createElement('div');
+      timerContainer.classList.add('timer-container');
+      timerContainer.id = `timer${newTimerId}`;
+
+      const buttonContainer = document.createElement('div');
+      buttonContainer.classList.add('button-container');
+
+      const removeButton = document.createElement('button');
+      removeButton.classList.add('button');
+      removeButton.innerText = 'Remove Timer';
+      removeButton.onclick = () => removeTimer(newTimerId);
+      buttonContainer.appendChild(removeButton);
+
+      const timerElement = document.createElement('div');
+      timerElement.classList.add('timer');
+      timerElement.innerText = formatTime(minutes * 60);
+      timerContainer.appendChild(buttonContainer);
+      timerContainer.appendChild(timerElement);
+
+      column.appendChild(timerContainer);
+
+      countdowns[newTimerId] = { time: minutes * 60, intervalId: null, columnId: columnId };
+      startTimerIfRunning(newTimerId);
+      enableRemoveButton(newTimerId);
+
+      // Enable or disable "Add 2" and "Add 5" buttons based on timer running status
+      const addButtons = document.querySelectorAll('.button.add');
+      addButtons.forEach(button => {
+        button.disabled = isTimersRunning;
+      });
     }
 
-    timerIdCounter++;
-    const newTimerId = timerIdCounter;
-
-    const timerContainer = document.createElement('div');
-    timerContainer.classList.add('timer-container');
-    timerContainer.id = `timer${newTimerId}`;
-
-    const buttonContainer = document.createElement('div');
-    buttonContainer.classList.add('button-container');
-
-    const removeButton = document.createElement('button');
-    removeButton.classList.add('button');
-    removeButton.innerText = 'Remove Timer';
-    removeButton.onclick = () => removeTimer(newTimerId);
-    buttonContainer.appendChild(removeButton);
-
-    const timerElement = document.createElement('div');
-    timerElement.classList.add('timer');
-    timerElement.innerText = `${String(minutes).padStart(2, '0')}:00`;
-    timerContainer.appendChild(buttonContainer);
-    timerContainer.appendChild(timerElement);
-
-    const column = document.getElementById(`column${columnId}`);
-    column.appendChild(timerContainer);
-
-    countdowns[newTimerId] = { time: minutes * 60, intervalId: null };
-    startTimerIfRunning(newTimerId);
-    enableRemoveButton(newTimerId);
+    // Function to start timer if running
+    function startTimerIfRunning(timerId) {
+      if (isTimersRunning) {
+        startTimer(timerId);
+      }
     }
 
+    // Function to enable remove button
     function enableRemoveButton(timerId) {
       const removeButton = document.getElementById(`timer${timerId}`).querySelector('.button');
       removeButton.disabled = false;
     }
 
+    // Function to disable remove button
     function disableRemoveButton(timerId) {
       const removeButton = document.getElementById(`timer${timerId}`).querySelector('.button');
       removeButton.disabled = true;
     }
 
+    // Function to remove timer
     function removeTimer(timerId) {
       if (isTimersRunning) {
         alert('Stop all timers before adding or removing a timer.');
@@ -177,6 +250,7 @@
       checkAllTimersEnded();
     }
 
+    // Function to check if all timers have ended
     function checkAllTimersEnded() {
       const allTimersEnded = Object.values(countdowns).every(timer => timer.time === 0);
       if (allTimersEnded) {
@@ -184,6 +258,7 @@
       }
     }
 
+    // Function to stop all timers
     function stopAllTimers() {
       Object.keys(countdowns).forEach(timerId => {
         clearInterval(countdowns[timerId].intervalId);
@@ -191,12 +266,15 @@
         enableRemoveButton(timerId);
       });
       isTimersRunning = false;
-      addButton12.disabled = false;
-      addButton22.disabled = false;
-      addButton15.disabled = false;
-      addButton25.disabled = false;
+
+      // Enable "Add 2" and "Add 5" buttons
+      const addButtons = document.querySelectorAll('.button.add');
+      addButtons.forEach(button => {
+        button.disabled = false;
+      });
     }
 
+    // Function to toggle timers
     function toggleTimers() {
       const hasTimers = Object.keys(countdowns).length > 0;
 
@@ -212,30 +290,32 @@
           clearInterval(countdowns[timerId].intervalId);
           countdowns[timerId].intervalId = null;
           enableRemoveButton(timerId);
-          addButton12.disabled = false;
-          addButton22.disabled = false;
-          addButton15.disabled = false;
-          addButton25.disabled = false;
         });
         isTimersRunning = false;
       } else {
         Object.keys(countdowns).forEach(timerId => {
           disableRemoveButton(timerId);
-          addButton12.disabled = true;
-          addButton22.disabled = true;
-          addButton15.disabled = true;
-          addButton25.disabled = true;
           startTimer(timerId);
         });
         isTimersRunning = true;
       }
+
+      // Update button states based on timer running status
+      const addButtons = document.querySelectorAll('.button.add');
+      addButtons.forEach(button => {
+        button.disabled = isTimersRunning;
+      });
     }
 
-    function startTimerIfRunning(timerId) {
-      if (isTimersRunning) {
-        startTimer(timerId);
-      }
-    }
+    // Save the timer state to localStorage every second
+    setInterval(() => {
+      let serializedObject = JSON.stringify(countdowns);
+      localStorage.setItem('allCounters', serializedObject);
+      localStorage.setItem('tc', timerIdCounter.toString());
+    }, 1000);
+
+    // Call the function to initialize timers during page load
+    initializeTimersFromLocalStorage();
   </script>
 </body>
 </html>
